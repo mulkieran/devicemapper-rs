@@ -7,15 +7,13 @@ use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use super::device::Device;
-use super::deviceinfo::DeviceInfo;
-use super::dm::DM;
-use super::dm_flags::DmFlags;
+use devicemapper::{DataBlocks, DevId, Device, DeviceInfo, DM, DmFlags, DmName, DmUuid, MetaBlocks,
+                   Sectors, TargetTypeBuf};
+
 use super::lineardev::{LinearDev, LinearDevTargetParams};
 use super::result::{DmError, DmResult, ErrorEnum};
 use super::shared::{DmDevice, TargetLine, TargetParams, TargetTable, device_create, device_exists,
                     device_match, parse_device};
-use super::types::{DataBlocks, DevId, DmName, DmUuid, MetaBlocks, Sectors, TargetTypeBuf};
 
 
 const CACHE_TARGET_NAME: &str = "cache";
@@ -701,9 +699,8 @@ use std::fs::OpenOptions;
 use std::path::Path;
 
 #[cfg(test)]
-use super::consts::IEC;
-#[cfg(test)]
-use super::device::devnode_to_devno;
+use devicemapper::{IEC, devnode_to_devno};
+
 #[cfg(test)]
 use super::lineardev::LinearTargetParams;
 #[cfg(test)]
