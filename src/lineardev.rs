@@ -7,14 +7,11 @@ use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use super::device::Device;
-use super::deviceinfo::DeviceInfo;
-use super::dm::DM;
-use super::dm_flags::DmFlags;
+use devicemapper::{Device, DeviceInfo, DevId, DmName, DmUuid, Sectors, TargetTypeBuf, DM, DmFlags};
+
 use super::result::{DmError, DmResult, ErrorEnum};
 use super::shared::{DmDevice, TargetLine, TargetParams, TargetTable, device_create, device_exists,
                     device_match, parse_device};
-use super::types::{DevId, DmName, DmUuid, Sectors, TargetTypeBuf};
 
 
 const FLAKEY_TARGET_NAME: &str = "flakey";
@@ -333,6 +330,15 @@ impl LinearDevTargetTable {
     }
 }
 
+impl fmt::Display for LinearDevTargetTable {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for line in &self.table {
+            writeln!(f, "{} {} {}", *line.start, *line.length, line.params)?;
+        }
+        Ok(())
+    }
+}
+
 impl TargetTable for LinearDevTargetTable {
     fn from_raw_table(table: &[(Sectors, Sectors, TargetTypeBuf, String)])
                       -> DmResult<LinearDevTargetTable> {
@@ -485,7 +491,8 @@ mod tests {
     use std::fs::OpenOptions;
     use std::path::Path;
 
-    use super::super::device::{Device, devnode_to_devno};
+    use devicemapper::{Device, devnode_to_devno};
+
     use super::super::loopbacked::{blkdev_size, test_with_spec};
 
     use super::*;

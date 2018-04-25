@@ -9,12 +9,10 @@ use std::fmt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use super::device::{Device, devnode_to_devno};
-use super::deviceinfo::DeviceInfo;
-use super::dm::DM;
-use super::dm_flags::DmFlags;
+use devicemapper::{Device, DeviceInfo, DevId, DM, DmFlags, DmName, DmUuid, Sectors, TargetTypeBuf,
+                   devnode_to_devno};
+
 use super::result::{DmError, DmResult, ErrorEnum};
-use super::types::{DevId, DmName, DmUuid, Sectors, TargetTypeBuf};
 
 
 /// The trait for properties of the params string of TargetType
@@ -50,7 +48,8 @@ impl<T: TargetParams> TargetLine<T> {
     }
 }
 
-pub trait TargetTable: Clone + fmt::Debug + Eq + PartialEq + Sized {
+pub trait TargetTable
+    : Clone + fmt::Debug + fmt::Display + Eq + PartialEq + Sized {
     /// Constructs a table from a raw table returned by DM::table_status()
     fn from_raw_table(table: &[(Sectors, Sectors, TargetTypeBuf, String)]) -> DmResult<Self>;
 
@@ -134,7 +133,7 @@ pub fn device_create<T: TargetTable>(dm: &DM,
     let dev_info = match dm.table_load(&id, &table.to_raw_table()) {
         Err(e) => {
             dm.device_remove(&id, DmFlags::empty())?;
-            return Err(e);
+            return Err(e.into());
         }
         Ok(dev_info) => dev_info,
     };
