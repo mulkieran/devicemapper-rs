@@ -1,7 +1,6 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-use std::mem::transmute;
 use std::str::from_utf8;
 
 use super::device::Device;
@@ -24,6 +23,7 @@ pub struct DeviceInfo {
 }
 
 impl DeviceInfo {
+    /// Make a new DeviceInfo struct
     pub fn new(hdr: dmi::Struct_dm_ioctl) -> DeviceInfo {
         DeviceInfo { hdr }
     }
@@ -52,7 +52,8 @@ impl DeviceInfo {
 
     /// The device's name.
     pub fn name(&self) -> &DmName {
-        let name: &[u8; DM_NAME_LEN] = unsafe { transmute(&self.hdr.name) };
+        let name: &[u8; DM_NAME_LEN] =
+            unsafe { &*(&self.hdr.name as *const [i8; DM_NAME_LEN] as *const [u8; DM_NAME_LEN]) };
         let slc = slice_to_null(name).expect("kernel ensures null-terminated");
         let name = from_utf8(slc).expect("kernel ensures ASCII characters");
         assert!(!name.is_empty());
@@ -61,7 +62,8 @@ impl DeviceInfo {
 
     /// The device's devicemapper uuid.
     pub fn uuid(&self) -> Option<&DmUuid> {
-        let uuid: &[u8; DM_UUID_LEN] = unsafe { transmute(&self.hdr.uuid) };
+        let uuid: &[u8; DM_UUID_LEN] =
+            unsafe { &*(&self.hdr.uuid as *const [i8; DM_UUID_LEN] as *const [u8; DM_UUID_LEN]) };
         let slc = slice_to_null(uuid).expect("kernel ensures null-terminated");
         let uuid = from_utf8(slc).expect("kernel ensures ASCII characters");
         if uuid.is_empty() {
