@@ -430,6 +430,7 @@ impl ThinPoolDev {
     /// Returns an error if the device is already known to the kernel.
     /// Returns an error if data_block_size is not within required range.
     /// Precondition: the metadata device does not contain any pool metadata.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         dm: &DM,
         name: &DmName,
@@ -438,6 +439,7 @@ impl ThinPoolDev {
         data: LinearDev,
         data_block_size: Sectors,
         low_water_mark: DataBlocks,
+        create_options: DmOptions,
     ) -> DmResult<ThinPoolDev> {
         if device_exists(dm, name)? {
             let err_msg = format!("thinpooldev {} already exists", name);
@@ -445,7 +447,7 @@ impl ThinPoolDev {
         }
 
         let table = ThinPoolDev::gen_default_table(&meta, &data, data_block_size, low_water_mark);
-        let dev_info = device_create(dm, name, uuid, &table, DmOptions::default())?;
+        let dev_info = device_create(dm, name, uuid, &table, create_options)?;
 
         Ok(ThinPoolDev {
             dev_info: Box::new(dev_info),
@@ -486,6 +488,7 @@ impl ThinPoolDev {
         data_block_size: Sectors,
         low_water_mark: DataBlocks,
         feature_args: Vec<String>,
+        create_options: DmOptions,
     ) -> DmResult<ThinPoolDev> {
         let table =
             ThinPoolDev::gen_table(&meta, &data, data_block_size, low_water_mark, feature_args);
@@ -500,7 +503,7 @@ impl ThinPoolDev {
             device_match(dm, &dev, uuid)?;
             dev
         } else {
-            let dev_info = device_create(dm, name, uuid, &table, DmOptions::default())?;
+            let dev_info = device_create(dm, name, uuid, &table, create_options)?;
             ThinPoolDev {
                 dev_info: Box::new(dev_info),
                 meta_dev: meta,
@@ -731,6 +734,7 @@ pub fn minimal_thinpool(dm: &DM, path: &Path) -> ThinPoolDev {
         &test_name("meta").expect("valid format"),
         None,
         meta_table,
+        DmOptions::default(),
     )
     .unwrap();
 
@@ -745,6 +749,7 @@ pub fn minimal_thinpool(dm: &DM, path: &Path) -> ThinPoolDev {
         &test_name("data").expect("valid format"),
         None,
         data_table,
+        DmOptions::default(),
     )
     .unwrap();
 
@@ -756,6 +761,7 @@ pub fn minimal_thinpool(dm: &DM, path: &Path) -> ThinPoolDev {
         data,
         MIN_DATA_BLOCK_SIZE,
         DataBlocks(1),
+        DmOptions::default(),
     )
     .unwrap()
 }
@@ -828,7 +834,8 @@ mod tests {
             MIN_RECOMMENDED_METADATA_SIZE,
             LinearDevTargetParams::Linear(meta_params),
         )];
-        let meta = LinearDev::setup(&dm, &meta_name, None, meta_table).unwrap();
+        let meta =
+            LinearDev::setup(&dm, &meta_name, None, meta_table, DmOptions::default()).unwrap();
 
         let data_name = test_name("data").expect("valid format");
         let data_params = LinearTargetParams::new(dev, MIN_RECOMMENDED_METADATA_SIZE);
@@ -837,7 +844,8 @@ mod tests {
             512u64 * MIN_DATA_BLOCK_SIZE,
             LinearDevTargetParams::Linear(data_params),
         )];
-        let data = LinearDev::setup(&dm, &data_name, None, data_table).unwrap();
+        let data =
+            LinearDev::setup(&dm, &data_name, None, data_table, DmOptions::default()).unwrap();
 
         assert_matches!(
             ThinPoolDev::new(
@@ -847,7 +855,8 @@ mod tests {
                 meta,
                 data,
                 MIN_DATA_BLOCK_SIZE / 2u64,
-                DataBlocks(1)
+                DataBlocks(1),
+                DmOptions::default(),
             ),
             Err(DmError::Core(Error::Ioctl(_, _)))
         );
