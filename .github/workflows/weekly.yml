@@ -3,6 +3,19 @@ name: devicemapper weekly
 
 # yamllint disable-line rule:truthy
 on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'CHANGES.txt'
+      - '**/README.md'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'CHANGES.txt'
+      - '**/README.md'
+
   schedule:
     - cron: 20 3 * * 2
   workflow_dispatch:
