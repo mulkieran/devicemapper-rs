@@ -281,7 +281,7 @@ pub mod sync_semaphore {
         }
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Default)]
     pub struct UdevSync {
         cookie: u32,
         semid: Option<i32>,
@@ -486,7 +486,7 @@ pub mod sync_noop {
     use super::UdevSyncAction;
     use crate::{core::dm_ioctl as dmi, result::DmResult};
 
-    #[derive(Debug)]
+    #[derive(Debug, Default)]
     pub struct UdevSync {
         cookie: u32,
         semid: Option<i32>,
