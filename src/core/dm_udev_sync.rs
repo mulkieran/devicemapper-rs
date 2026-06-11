@@ -495,10 +495,7 @@ pub mod sync_noop {
     impl UdevSyncAction for UdevSync {
         fn begin(hdr: &mut dmi::Struct_dm_ioctl, ioctl: u8) -> DmResult<Self> {
             debug!("Created noop UdevSync {{ cookie: {}, semid: {} }}", 0, -1);
-            Ok(UdevSync {
-                cookie: 0,
-                semid: None,
-            })
+            Ok(UdevSync::default())
         }
 
         fn end(self, _flags: u32) -> DmResult<()> {
